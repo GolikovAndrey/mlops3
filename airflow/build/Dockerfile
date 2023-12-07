@@ -10,4 +10,4 @@ RUN apt-get update && \
 USER airflow
 
 ADD requirements.txt .
-RUN python -m pip --no-cache-dir install --upgrade pip && python -m pip --no-cache-dir install -r requirements.txt
+RUN python -m pip install -r requirements.txt
