@@ -45,6 +45,11 @@ services:
         - '3306'
         volumes:
         - my-db:/var/lib/mysql
+        init:
+            - '/bin/bash'
+            - '-c'
+            - |
+            echo "CREATE DATABASE mlflow_db;" | mysql -u root -p $MYSQL_PASSWORD
 
     web:
         restart: always
