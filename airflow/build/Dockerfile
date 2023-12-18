@@ -5,7 +5,8 @@ USER root
 RUN apt-get update && \
         apt-get install -y --no-install-recommends  build-essential && \
         apt-get autoremove -yqq --purge && \
-        apt-get clean
+        apt-get clean && \
+        apt-get install -y git
 
 USER airflow
 

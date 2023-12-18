@@ -1,19 +1,19 @@
 import pendulum
 from airflow.models import DAG
 from airflow.operators.python import PythonOperator
-from scripts.prepare_data import prepare_data
+from scripts.evaluate_model import evaluate_model
 
 with DAG(
-    dag_id="prepare_data_dag",
+    dag_id="evaluate_model_dag",
     start_date=pendulum.datetime(2023, 12, 18),
     schedule_interval=None,
     tags=["WORK"],
     catchup=False
 ):
     
-    prepare_data_task = PythonOperator(
-        task_id="prepare_data_task",
-        python_callable=prepare_data
+    evaluate_model_task = PythonOperator(
+        task_id="evaluate_model_task",
+        python_callable=evaluate_model
     )
 
-prepare_data_task
+evaluate_model_task
