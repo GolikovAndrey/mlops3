@@ -5,24 +5,14 @@ from sqlalchemy import text
 import pandas as pd
 from airflow.models import Variable
 
-# CONN_PARAMS = {
-#     "MYSQL_USER": Variable.get("MYSQL_USER"),
-#     "MYSQL_PASS": Variable.get("MYSQL_PASS"),
-#     "MYSQL_HOST": Variable.get("MYSQL_HOST"),
-#     "MYSQL_PORT": Variable.get("MYSQL_PORT"),
-#     "MYSQL_DB": Variable.get("MYSQL_DB"),
-
-#     "MLFLOW_TRACKING_URI": Variable.get("MLFLOW_TRACKING_URI")
-# }
-
 CONN_PARAMS = {
-    "MYSQL_USER": "root", #Variable.get("MYSQL_USER"),
-    "MYSQL_PASS": "password", #Variable.get("MYSQL_PASS"),
-    "MYSQL_HOST": "127.0.0.1", #Variable.get("MYSQL_HOST"),
-    "MYSQL_PORT": 3306, #Variable.get("MYSQL_PORT"),
-    "MYSQL_DB": "db" #Variable.get("MYSQL_DB"),
+    "MYSQL_USER": Variable.get("MYSQL_USER"),
+    "MYSQL_PASS": Variable.get("MYSQL_PASS"),
+    "MYSQL_HOST": Variable.get("MYSQL_HOST"),
+    "MYSQL_PORT": Variable.get("MYSQL_PORT"),
+    "MYSQL_DB": Variable.get("MYSQL_DB"),
 
-    # "MLFLOW_TRACKING_URI": Variable.get("MLFLOW_TRACKING_URI")
+    "MLFLOW_TRACKING_URI": Variable.get("MLFLOW_TRACKING_URI")
 }
 
 user_creds = f'{CONN_PARAMS["MYSQL_USER"]}:{CONN_PARAMS["MYSQL_PASS"]}'
