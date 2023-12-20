@@ -1,8 +1,8 @@
 import os
 import mlflow
 import sqlalchemy
-from sqlalchemy import text
 import pandas as pd
+from sqlalchemy import text
 from airflow.models import Variable
 
 CONN_PARAMS = {

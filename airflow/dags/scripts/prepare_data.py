@@ -1,5 +1,3 @@
-import pandas as pd
-
 from scripts.supp_functions import read_mysql_table, write_df_to_mysql, execute_query
 
 def trunc(str):

@@ -1,12 +1,10 @@
 import os
 import time
 import mlflow
-import streamlit as st
-from datetime import timedelta
+import requests
 import sqlalchemy
 import pandas as pd
-import streamlit.components.v1 as components
-import requests
+import streamlit as st
 from sqlalchemy import text
 
 st.header("Загрузка файла CSV для прогнозирования")
@@ -64,8 +62,6 @@ def execute_query(query: str):
 
 if uploaded_file is not None:
     try:
-        # components.html("<image src='https://media1.tenor.com/m/FawYo00tBekAAAAC/loading-thinking.gif' width=100 height=100>")
-        # st.text("Это заглушка и тут пока ничего не делается")
 
         mapper = {
             "Пол": "sex",

@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 
 from airflow.models import Variable
-from scripts.supp_functions import read_mysql_table
 from catboost import CatBoostClassifier
+from scripts.supp_functions import read_mysql_table
 from sklearn.metrics import classification_report
 
 def evaluate_model():

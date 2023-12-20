@@ -111,9 +111,6 @@ with st.form("my_form"):
         targeted_reception = st.checkbox('Целевой прием')
 
     with st.container(border=True):
-        agreement = st.checkbox('Итоговое согласие')
-
-    with st.container(border=True):
         total_points = st.number_input('Сумма баллов', min_value=0, max_value=400)
 
     with st.container(border=True):
@@ -139,30 +136,43 @@ with st.form("my_form"):
     if submitted:
         if not sex:
             st.error("Отметьте пол")
+
         elif not language:
             st.error("Выберите языки")
+        
         elif not education:
             st.error("Выберите полученное образование")
+        
         elif not document_educatuon:
             st.error("Выберите форму получения документа об образовании")
+        
         elif not pay_type:
             st.error("Выберите вид возмещения затрат")
+        
         elif not education_form:
             st.error("Выберите форму обучения")
+        
         elif not reception_type:
             st.error("Выберите вид приема")
+        
         elif not department:
             st.error("Выберите формирующее подразделение")
+        
         elif not education_program:
             st.error("Выберите набор образовательных программ")
+        
         elif not total_points:
             st.error("Введите сумму баллов")
+        
         elif not total_achievements_points:
             st.error("Введите сумму баллов за индивидуальные достижения")
+        
         elif not age:
             st.error("Введите возраст")
+        
         elif not settlement:
             st.error("Выберите населенный пункт")
+        
         else:
             params_dict = {
                 'sex': [0 if sex == 'М' else 1],

@@ -1,6 +1,6 @@
 import sqlalchemy
-from sqlalchemy import text
 import pandas as pd
+from sqlalchemy import text
 
 CONN_PARAMS = {
     "MYSQL_USER": "root", 

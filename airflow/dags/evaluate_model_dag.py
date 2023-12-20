@@ -1,7 +1,7 @@
 import pendulum
 from airflow.models import DAG
-from airflow.operators.python import PythonOperator
 from scripts.evaluate_model import evaluate_model
+from airflow.operators.python import PythonOperator
 
 with DAG(
     dag_id="evaluate_model_dag",
