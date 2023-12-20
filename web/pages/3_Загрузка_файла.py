@@ -13,6 +13,12 @@ st.header("Загрузка файла CSV для прогнозирования
 
 uploaded_file = st.file_uploader("Выберите файл xlsx", type=["xlsx"])
 
+os.environ["MLFLOW_TRACKING_URI"] = "http://172.30.0.15:5000"
+os.environ["MLFLOW_S3_ENDPOINT_URL"] = "http://172.30.0.15:9000"
+os.environ["AWS_ACCESS_KEY_ID"] = 'minio'
+os.environ["AWS_SECRET_ACCESS_KEY"] = 'minio123'
+os.environ["AWS_DEFAULT_REGION"] = 'eu-central-1'
+
 def get_mysql_connection():
     user_creds = "root:password"
     db_creds = "127.0.0.1:3306"
@@ -49,7 +55,7 @@ def write_df_to_mysql(dataframe: pd.DataFrame, table_name: str):
                 table_name,
                 con=conn,
                 if_exists="append",
-                index=False
+                index=True
             )
 
 def execute_query(query: str):
@@ -58,8 +64,7 @@ def execute_query(query: str):
 
 if uploaded_file is not None:
     try:
-        st.success("Файл загружен. Делаем прогнозы.")
-        components.html("<image src='https://media1.tenor.com/m/FawYo00tBekAAAAC/loading-thinking.gif' width=100 height=100>")
+        # components.html("<image src='https://media1.tenor.com/m/FawYo00tBekAAAAC/loading-thinking.gif' width=100 height=100>")
         # st.text("Это заглушка и тут пока ничего не делается")
 
         mapper = {
@@ -77,40 +82,37 @@ if uploaded_file is not None:
             "Формирующее подр.": "forming_unit",
             "Набор ОП": "educational_programs",
             "Целевой прием": "target_reception",
-            "Итоговое согласие": "final_consent",
             "Сумма баллов": "sum_points",
             "Сумма баллов за индивидуальные достижения": "individual_achievements",
             "Код насел. пункта": "city_code",
             "Возраст": "age"
         }
 
-        dataframe = (
+        primary_data = (
             pd.read_excel(
                 uploaded_file, 
                 engine="openpyxl"
             )
         )
 
+        dataframe = primary_data.copy()
+
         dataframe['Дата подачи'] = pd.to_datetime(dataframe['Дата подачи'], format='mixed')
         dataframe['Дата рождения'] = pd.to_datetime(dataframe['Дата рождения'], format='mixed')
         dataframe['Возраст'] = ((dataframe['Дата подачи'] - dataframe['Дата рождения']).dt.days/365).fillna(0).astype(int)
-
-        dataframe.loc[dataframe['Возраст'] < 17, 'Возраст'] = 17
-        dataframe.loc[dataframe['Возраст'] > 25, 'Возраст'] = 25
 
         dataframe = (
             dataframe[[
                 'Пол', 'Возраст', 'Льготы', 'Нуждается в общежитии', 
                 'Иностранный язык', 'Спорт', 'Код насел. пункта', 'Служба в армии', 'Полученное образование', 
-                'Форма получения док. об образ.', 
-                'Вид возмещения затрат', 'Форма обучения', 'Вид приема',  'Формирующее подр.', 
-                'Набор ОП', 'Целевой прием', 'Итоговое согласие', 'Сумма баллов', 
+                'Форма получения док. об образ.', 'Вид возмещения затрат', 'Форма обучения', 
+                'Вид приема',  'Формирующее подр.', 'Набор ОП', 'Целевой прием', 'Сумма баллов', 
                 'Сумма баллов за индивидуальные достижения'
             ]]
             .rename(columns=mapper)
         )
 
-        st.success("Данные предобработаны, загружаем в базу данных.")
+        st.success("Загружаем в базу данных.")
 
         execute_query("TRUNCATE TABLE raw_dataframe")
         write_df_to_mysql(dataframe, "raw_dataframe")
@@ -132,29 +134,42 @@ if uploaded_file is not None:
         
         st.success("Данные успешно предобработаны. Сделаем предсказание.")
 
-        os.environ["MLFLOW_TRACKING_URI"] = "http://172.30.0.15:5000"
-        os.environ["MLFLOW_S3_ENDPOINT_URL"] = "http://172.30.0.15:9000"
-        os.environ["AWS_ACCESS_KEY_ID"] = 'minio'
-        os.environ["AWS_SECRET_ACCESS_KEY"] = 'minio123'
-        os.environ["AWS_DEFAULT_REGION"] = 'eu-central-1'
-
         model_name = "CatBoostClassifier"
         model_stage = "None"
 
-        mlflow.set_tracking_uri("http://172.30.0.15:5000")
+        mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
 
-        client = mlflow.MlflowClient(tracking_uri="http://172.30.0.15:5000")
+        client = mlflow.MlflowClient(tracking_uri=os.getenv("MLFLOW_TRACKING_URI"))
         model_version = client.get_latest_versions(model_name, stages=[model_stage])[0].version
         print(f'Для модели {model_name} со стадией {model_stage} самой поздней версией является {model_version}')
         model = mlflow.catboost.load_model(model_uri=f'models:/{model_name}/{model_stage}')
 
         df = read_mysql_table("SELECT * FROM another_dataframe")
 
-        st.dataframe(df)
+        predictions = []
 
-        predict = model.predict(df)
+        for _, row in df.drop("index", axis=1).iterrows():
+            predictions.append(model.predict(data=row))
 
-        st.dataframe(predict)
+        result = pd.DataFrame({
+            "Предсказание": predictions
+        }, index=df["index"].values)
+
+        result = pd.merge(
+            primary_data,
+            result,
+            "outer",
+            left_index=True,
+            right_index=True
+        )
+
+        result.loc[result["Предсказание"] == 0, "Предсказание"] = "Не поступит"
+        result.loc[result["Предсказание"] == 1, "Предсказание"] = "Поступит"
+        result.loc[result["Предсказание"].isna(), "Предсказание"] = "Недостаточно данных"
+
+        st.dataframe(result)
+
+        st.success("Конец")
 
     except Exception as e:
         st.error(f"Ошибка при чтении файла: {e}")
