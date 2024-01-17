@@ -11,15 +11,19 @@ st.header("Загрузка файла CSV для прогнозирования
 
 uploaded_file = st.file_uploader("Выберите файл xlsx", type=["xlsx"])
 
-os.environ["MLFLOW_TRACKING_URI"] = "http://172.30.0.15:5000"
-os.environ["MLFLOW_S3_ENDPOINT_URL"] = "http://172.30.0.15:9000"
+#Заменить host на необходимый ip
+
+host = "host"
+
+os.environ["MLFLOW_TRACKING_URI"] = f"http://{host}:5000"
+os.environ["MLFLOW_S3_ENDPOINT_URL"] = f"http://{host}:9000"
 os.environ["AWS_ACCESS_KEY_ID"] = 'minio'
 os.environ["AWS_SECRET_ACCESS_KEY"] = 'minio123'
 os.environ["AWS_DEFAULT_REGION"] = 'eu-central-1'
 
 def get_mysql_connection():
     user_creds = "root:password"
-    db_creds = "127.0.0.1:3306"
+    db_creds = f"{host}:3306"
     db = 'db'
     extras = "charset=utf8mb4"
 
